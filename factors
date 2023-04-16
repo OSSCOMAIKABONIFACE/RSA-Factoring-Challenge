@@ -1,34 +1,34 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This is a factors challenge
 
-# Function to check if a number is a perfect square
-is_perfect_square() {
-    local root=$(echo "sqrt($1)" | bc)
-    [[ $((root*root)) -eq $1 ]]
-}
+check_factor() {
+    factors=($(factor -t -P "$1"))
 
-# Function to find the factors of a number and return the largest two
-find_factors() {
-    local n=$1
-    local i=2
-    while ((i*i <= n)); do
-        if ((n % i == 0)); then
-            if is_perfect_square "$((n/i))"; then
-                echo "$i,$((n/i))"
-                return
-            fi
+    if [ ${#factors[@]} -eq 1 ]; then
+        echo "$1=1*$1"
+    else
+        max_factor=${factors[-1]}
+        second_max_factor=${factors[-2]}
+
+        if [ ${#factors[@]} -gt 2 ]; then
+            for ((i=${#factors[@]}-3; i>=0; i--)); do
+                if [ $((factors[i] * second_max_factor)) -gt $((max_factor * factors[i+1])) ]; then
+                    break
+                fi
+
+                second_max_factor=${factors[i]}
+            done
         fi
-        ((i++))
-    done
-    echo "1,$n"
+
+        echo "$1=$max_factor*$second_max_factor"
+    fi
 }
 
 if [ $# -ne 1 ]; then
-    echo "Usage: factors <file>"
+    echo 'Usage: factors <file>'
     exit 1
+else
+    while read -r number; do
+        check_factor "$number"
+    done < "$1"
 fi
-
-while read -r number; do
-    factors=$(find_factors "$number")
-    echo "$number=${factors/,/*}"
-done < "$1"
