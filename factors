@@ -1,29 +1,21 @@
-#!/usr/bin/env bash
-# This is a factors challenge
+import math
+import sys
 
-declare -A factors_map=()
+def factorize(number):
+    # Find the smallest factor greater than or equal to sqrt(number)
+    max_factor = math.isqrt(number)
+    for factor in range(max_factor, 1, -1):
+        if number % factor == 0:
+            # Found a factor, return the factorization
+            return f"{number}={factor}*{number//factor}"
+    # If no factor is found, the number is prime
+    return f"{number}=1*{number}"
 
-# Pre-compute the prime factors for all numbers in the file
-while read -r number; do
-    factors=$(factor "$number" | awk '{$1=""; print $0}' | sed 's/ //g')
-    factors_map["$number"]=$factors
-done < "$1"
+if len(sys.argv) != 2:
+    print("Usage: factors <file>")
+    sys.exit(1)
 
-# Factorize each number in the file
-while read -r number; do
-    factors=${factors_map["$number"]}
-    factors_array=($factors)
-
-    max_factor=${factors_array[-1]}
-    second_max_factor=${factors_array[-2]}
-
-    for ((i=${#factors_array[@]}-3; i>=0; i--)); do
-        if [ $(echo "${factors_array[$i]}*$second_max_factor" | bc) -gt $(echo "$max_factor*${factors_array[$i+1]}" | bc) ]; then
-            break
-        fi
-
-        second_max_factor=${factors_array[$i]}
-    done
-
-    echo "$number=$max_factor*$second_max_factor"
-done < "$1"
+with open(sys.argv[1]) as f:
+    for line in f:
+        number = int(line.strip())
+        print(factorize(number))
